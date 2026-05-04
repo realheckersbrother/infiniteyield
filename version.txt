@@ -1,0 +1,4 @@
+{
+	"Version": "6.4.2",
+	"Announcement": "Thanks for using infinite yield RHB edition!"
+}
