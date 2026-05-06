@@ -8083,35 +8083,60 @@ end)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+local JustESPEnabled = true
+local PlayerData = {}
+local Games = {
+    142823291 = false;
+}
 
-local JustESPEnabled = false
-local Visuals = {}
+Games[game.PlaceId] = Games[game.PlaceId] and true
+
 local ESPFolder = Instance.new("Folder")
 ESPFolder.Name = "JustESPFolder"
 ESPFolder.Parent = game:GetService("CoreGui")
 
+local Visuals = {}
+
+if Games[142823291] then
+    local function GetRoleColor(player)
+        local color = Color3.fromRGB(0, 255, 0)
+        local data = PlayerData[player.Name]
+
+        if data and data.Role then
+            if data.Role == "Murderer" then
+                color = Color3.fromRGB(255, 0, 0)
+            elseif data.Role == "Sheriff" or data.Role == "Hero" then
+                color = Color3.fromRGB(0, 0, 255)
+            end
+        end
+        return color
+    end
+end
+
 local function CreateVisual(player)
     if not player:IsA("Player") or player == LocalPlayer then return end
-    if Visuals[player] then RemoveVisual(player) end
+    if Visuals[player] then
+        if Visuals[player].Highlight then Visuals[player].Highlight:Destroy() end
+        if Visuals[player].Billboard then Visuals[player].Billboard:Destroy() end
+    end
 
-    local character = player.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-
+    local character = player.Character or player.CharacterAdded:Wait()
+    player:HasAppearanceLoaded()
+    
     local highlight = Instance.new("Highlight", ESPFolder)
     highlight.Adornee = character
     highlight.FillTransparency = 1
-    highlight.OutlineColor = Color3.new(1, 1, 1)
     highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     highlight.Enabled = JustESPEnabled
 
     local billboard = Instance.new("BillboardGui", ESPFolder)
     billboard.Name = player.Name .. "_DistanceBillboard"
-    billboard.Adornee = character
+    billboard.Adornee = character:WaitForChild("Head", 10) or character.PrimaryPart
     billboard.Size = UDim2.new(0, 100, 0, 30)
     billboard.StudsOffset = Vector3.new(0, 3, 0)
     billboard.AlwaysOnTop = true
@@ -8120,9 +8145,7 @@ local function CreateVisual(player)
     local label = Instance.new("TextLabel", billboard)
     label.Size = UDim2.new(1, 0, 1, 0)
     label.BackgroundTransparency = 1
-    label.TextColor3 = Color3.new(1, 1, 1)
     label.TextStrokeTransparency = 0.4
-    label.TextStrokeColor3 = Color3.new(0, 0, 0)
     label.TextScaled = true
     label.Font = Enum.Font.GothamBold
     label.Text = player.Name .. "\n0 studs"
@@ -8144,13 +8167,21 @@ local function RemoveVisual(player)
 end
 
 local function UpdateVisuals()
-    if not JustESPEnabled then return end
+    local myChar = LocalPlayer.Character
+    local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+    
     for player, data in pairs(Visuals) do
         local character = player.Character
-        local targetRoot = character and character:FindFirstChild("HumanoidRootPart")
-        if targetRoot and HumanoidRootPart then
-            local distance = (HumanoidRootPart.Position - targetRoot.Position).Magnitude
+        local plrRoot = character and character:FindFirstChild("HumanoidRootPart")
+        
+        if plrRoot and myRoot then
+            local distance = (myRoot.Position - plrRoot.Position).Magnitude
+            local color = Games[142823291] and GetRoleColor(player) or Color3.fromRGB(255, 255, 255)
+            
             data.Label.Text = string.format("%s\n%.0f studs", player.Name, distance)
+            data.Label.TextColor3 = color
+            data.Highlight.OutlineColor = color
+            
             data.Highlight.Enabled = JustESPEnabled
             data.Billboard.Enabled = JustESPEnabled
         else
@@ -8160,17 +8191,23 @@ local function UpdateVisuals()
     end
 end
 
-local function ToggleVisuals()
-    JustESPEnabled = not JustESPEnabled
-    UpdateVisuals()
+if Games[142823291] then 
+    ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Gameplay"):WaitForChild("PlayerDataChanged").OnClientEvent:Connect(function(Data)
+        PlayerData = Data
+    end)
 end
+
+Players.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(function()
+        CreateVisual(p)
+    end)
+end)
+
+Players.PlayerRemoving:Connect(RemoveVisual)
 
 for _, player in ipairs(Players:GetPlayers()) do
-    CreateVisual(player)
+    task.spawn(CreateVisual, player)
 end
-
-Players.PlayerAdded:Connect(CreateVisual)
-Players.PlayerRemoving:Connect(RemoveVisual)
 
 RunService.RenderStepped:Connect(UpdateVisuals)
 
@@ -12917,12 +12954,12 @@ addcmd("scare", {"spook"}, function(args, speaker)
 	for _, v in pairs(players) do
 		local root = speaker.Character and getRoot(speaker.Character)
 		local target = Players[v]
-		local targetRoot = target and target.Character and getRoot(target.Character)
+		local plrRoot = target and target.Character and getRoot(target.Character)
 
-		if root and targetRoot and target ~= speaker then
+		if root and plrRoot and target ~= speaker then
 			oldpos = root.CFrame
-			root.CFrame = targetRoot.CFrame + targetRoot.CFrame.lookVector * 2
-			root.CFrame = CFrame.new(root.Position, targetRoot.Position)
+			root.CFrame = plrRoot.CFrame + plrRoot.CFrame.lookVector * 2
+			root.CFrame = CFrame.new(root.Position, plrRoot.Position)
 			task.wait(0.5)
 			root.CFrame = oldpos
 		end
