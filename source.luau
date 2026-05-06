@@ -8090,7 +8090,7 @@ local LocalPlayer = Players.LocalPlayer
 local JustESPEnabled = true
 local PlayerData = {}
 local Games = {
-    142823291 = false;
+    [142823291] = false;
 }
 
 Games[game.PlaceId] = Games[game.PlaceId] and true
