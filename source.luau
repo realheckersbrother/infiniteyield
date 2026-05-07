@@ -8087,7 +8087,7 @@ local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local LocalPlayer = Players.LocalPlayer
-local JustESPEnabled = true
+local JustESPEnabled = false
 local PlayerData = {}
 local Games = {
     [142823291] = false;
