@@ -8132,6 +8132,7 @@ local function Setup(player, character)
     end
 
     local highlight = Instance.new("Highlight")
+    highlight.Name = player.Name .. "_Highlight"
     highlight.Parent = ESPFolder
     highlight.Adornee = character
     highlight.FillTransparency = 1
@@ -8140,9 +8141,9 @@ local function Setup(player, character)
     highlight.Enabled = JustESPEnabled
 
     local billboard = Instance.new("BillboardGui")
+    billboard.Name = player.Name .. "_Billboard"
     billboard.Parent = ESPFolder
-    billboard.Name = player.Name .. "_ESP"
-    billboard.Adornee = character:WaitForChild("Head", 5) or character.PrimaryPart
+    billboard.Adornee = character:WaitForChild("Head", 10) or character.PrimaryPart
     billboard.Size = UDim2.new(0, 100, 0, 30)
     billboard.StudsOffset = Vector3.new(0, 3, 0)
     billboard.AlwaysOnTop = true
@@ -8169,7 +8170,9 @@ local function CreateVisual(player)
     if player == LocalPlayer then return end
     
     player.CharacterAdded:Connect(function(char)
-        Setup(player, char)
+        task.delay(0.5, function()
+            Setup(player, char)
+        end)
     end)
     
     if player.Character then
@@ -8193,23 +8196,25 @@ local function UpdateVisuals()
         local character = player.Character
         local plrRoot = character and character:FindFirstChild("HumanoidRootPart")
         
-        if plrRoot and myRoot and character and character.Parent then
+        if character and character.Parent and plrRoot and myRoot then
             local distance = (myRoot.Position - plrRoot.Position).Magnitude
             local color = GetRoleColor(player)
             
             data.Label.Text = string.format("%s\n%.0f studs", player.Name, distance)
             data.Label.TextColor3 = color
-            data.Highlight.OutlineColor = color
             
-            if data.Highlight.Adornee ~= character then
+            if data.Highlight and data.Highlight.Parent then
+                data.Highlight.OutlineColor = color
                 data.Highlight.Adornee = character
+                data.Highlight.Enabled = JustESPEnabled
             end
             
-            data.Highlight.Enabled = JustESPEnabled
-            data.Billboard.Enabled = JustESPEnabled
+            if data.Billboard and data.Billboard.Parent then
+                data.Billboard.Enabled = JustESPEnabled
+            end
         else
-            data.Highlight.Enabled = false
-            data.Billboard.Enabled = false
+            if data.Highlight then data.Highlight.Enabled = false end
+            if data.Billboard then data.Billboard.Enabled = false end
         end
     end
 end
@@ -8235,7 +8240,7 @@ if Games[121268060261990] then
                 if p and Visuals[p] then
                     local color = Color3.fromRGB(255, 0, 0)
                     Visuals[p].Label.TextColor3 = color
-                    Visuals[p].Highlight.OutlineColor = color
+                    if Visuals[p].Highlight then Visuals[p].Highlight.OutlineColor = color end
                 end
             end)
             killerFolder.ChildRemoved:Connect(function(child)
@@ -8243,7 +8248,7 @@ if Games[121268060261990] then
                 if p and Visuals[p] then
                     local color = Color3.fromRGB(255, 255, 255)
                     Visuals[p].Label.TextColor3 = color
-                    Visuals[p].Highlight.OutlineColor = color
+                    if Visuals[p].Highlight then Visuals[p].Highlight.OutlineColor = color end
                 end
             end)
         end
