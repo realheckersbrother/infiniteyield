@@ -8226,6 +8226,30 @@ if Games[142823291] then
     end
 end
 
+if Games[121268060261990] then
+    task.spawn(function()
+        local killerFolder = workspace:WaitForChild("KillerFolder", 10)
+        if killerFolder then
+            killerFolder.ChildAdded:Connect(function(child)
+                local p = Players:FindFirstChild(child.Name)
+                if p and Visuals[p] then
+                    local color = Color3.fromRGB(255, 0, 0)
+                    Visuals[p].Label.TextColor3 = color
+                    Visuals[p].Highlight.OutlineColor = color
+                end
+            end)
+            killerFolder.ChildRemoved:Connect(function(child)
+                local p = Players:FindFirstChild(child.Name)
+                if p and Visuals[p] then
+                    local color = Color3.fromRGB(255, 255, 255)
+                    Visuals[p].Label.TextColor3 = color
+                    Visuals[p].Highlight.OutlineColor = color
+                end
+            end)
+        end
+    end)
+end
+
 Players.PlayerAdded:Connect(CreateVisual)
 Players.PlayerRemoving:Connect(RemoveVisual)
 
