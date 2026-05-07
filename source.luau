@@ -8091,6 +8091,7 @@ local JustESPEnabled = false
 local PlayerData = {}
 local Games = {
     [142823291] = false;
+    [121268060261990] = false;
 }
 
 Games[game.PlaceId] = Games[game.PlaceId] and true
@@ -8101,21 +8102,25 @@ ESPFolder.Parent = game:GetService("CoreGui")
 
 local Visuals = {}
 
-if Games[142823291] then
     local function GetRoleColor(player)
-        local color = Color3.fromRGB(0, 255, 0)
-        local data = PlayerData[player.Name]
+        local color = Color3.fromRGB(255, 255, 255)
+        if Games[142823291] then
+            local data = PlayerData[player.Name]
 
-        if data and data.Role then
-            if data.Role == "Murderer" then
+            if data and data.Role then
+                if data.Role == "Murderer" then
+                    color = Color3.fromRGB(255, 0, 0)
+                elseif data.Role == "Sheriff" or data.Role == "Hero" then
+                    color = Color3.fromRGB(0, 0, 255)
+                end
+            end
+        elseif Games[121268060261990] then
+            if workspace:FindFirstChild("KillerFolder"):FindFirstChild(player.Name) then
                 color = Color3.fromRGB(255, 0, 0)
-            elseif data.Role == "Sheriff" or data.Role == "Hero" then
-                color = Color3.fromRGB(0, 0, 255)
             end
         end
         return color
     end
-end
 
 local function CreateVisual(player)
     if not player:IsA("Player") or player == LocalPlayer then return end
@@ -8176,8 +8181,7 @@ local function UpdateVisuals()
         
         if plrRoot and myRoot then
             local distance = (myRoot.Position - plrRoot.Position).Magnitude
-            local color = Games[142823291] and GetRoleColor(player) or Color3.fromRGB(255, 255, 255)
-            
+            local color = GetRoleColor(player) or Color3.fromRGB(255, 255, 255)
             data.Label.Text = string.format("%s\n%.0f studs", player.Name, distance)
             data.Label.TextColor3 = color
             data.Highlight.OutlineColor = color
