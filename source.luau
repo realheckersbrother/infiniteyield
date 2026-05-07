@@ -4613,6 +4613,13 @@ CMDs[#CMDs + 1] = {NAME = 'freeze / fr [player] (CLIENT)', DESC = 'Freezes a pla
 CMDs[#CMDs + 1] = {NAME = 'freezeanims', DESC = 'Freezes your animations / pauses your animations - Does not work on default animations'}
 CMDs[#CMDs + 1] = {NAME = 'unfreezeanims', DESC = 'Unfreezes your animations / plays your animations'}
 CMDs[#CMDs + 1] = {NAME = 'thaw / unfr [player] (CLIENT)', DESC = 'Unfreezes a player'}
+CMDs[#CMDs + 1] = {NAME = 'resetvelocity / resetvel', DESC = 'Resets your velocity'}
+CMDs[#CMDs + 1] = {NAME = 'loopresetvelocity / looprvel', DESC = 'Loop resets your velocity'}
+CMDs[#CMDs + 1] = {NAME = 'unloopresetvelocity / unlooprvel', DESC = 'Breaks the reset velocity loop'}
+CMDs[#CMDs + 1] = {NAME = 'setvelocity / setvel [X Y Z]', DESC = 'Sets your velocity'}
+CMDs[#CMDs + 1] = {NAME = 'fieldofview / fov', DESC = 'Sets the field of view of the current camera'}
+CMDs[#CMDs + 1] = {NAME = 'loopfieldofview / loopfov', DESC = 'Loop sets the field of view of the current camera'}
+CMDs[#CMDs + 1] = {NAME = 'unloopfieldofview / unloopfov', DESC = 'Breaks the field of view loop'}
 CMDs[#CMDs + 1] = {NAME = 'anchor', DESC = 'Anchors your characters RootPart'}
 CMDs[#CMDs + 1] = {NAME = 'unanchor', DESC = 'Unanchors your characters RootPart'}
 CMDs[#CMDs + 1] = {NAME = 'tpposition / tppos [X Y Z]', DESC = 'Teleports you to certain coordinates'}
@@ -4692,7 +4699,6 @@ CMDs[#CMDs + 1] = {NAME = 'noclipcam / nccam', DESC = 'Allows camera to go throu
 CMDs[#CMDs + 1] = {NAME = 'maxzoom [num]', DESC = 'Maximum camera zoom'}
 CMDs[#CMDs + 1] = {NAME = 'minzoom [num]', DESC = 'Minimum camera zoom'}
 CMDs[#CMDs + 1] = {NAME = 'camdistance [num]', DESC = 'Changes camera distance from your player'}
-CMDs[#CMDs + 1] = {NAME = 'fov [num]', DESC = 'Adjusts field of view (default is 70)'}
 CMDs[#CMDs + 1] = {NAME = 'fixcam / restorecam', DESC = 'Fixes camera'}
 CMDs[#CMDs + 1] = {NAME = 'enableshiftlock / enablesl', DESC = 'Enables the shift lock option'}
 CMDs[#CMDs + 1] = {NAME = 'lookat [player]', DESC = 'Moves your camera view to a player'}
@@ -7511,6 +7517,76 @@ addcmd('toggleswim',{},function(args, speaker)
 	end
 end)
 
+local loopResetVelocity = false
+
+while loopResetVelocity and task.wait() do
+	for _, part in pairs(speaker.Character:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.AssemblyLinearVelocity = Vector3.zero
+			part.AssemblyAngularVelocity = Vector3.zero
+		end
+	end
+end
+
+addcmd('loopresetvelocity',{'looprvel'},function(args, speaker)
+	loopResetVelocity = true
+end)
+
+addcmd('unloopresetvelocity',{'unlooprvel'},function(args, speaker)
+	loopResetVelocity = false
+end)
+
+addcmd('resetvelocity',{'resetvel'},function(args, speaker)
+	for _, part in pairs(speaker.Character:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.AssemblyLinearVelocity = Vector3.zero
+			part.AssemblyAngularVelocity = Vector3.zero
+		end
+	end
+end)
+
+addcmd('setvelocity',{'setvel'},function(args, speaker)
+	if args[1] and args[2] and args[3] then
+		for _, part in pairs(speaker.Character:GetDescendants()) do
+			if part:IsA("BasePart") then
+				part.AssemblyLinearVelocity = Vector3.new(args[1], args[2], args[3])
+				part.AssemblyAngularVelocity = Vector3.new(args[1], args[2], args[3])
+			end
+		end
+	end
+end)
+
+addcmd('fieldofview',{'fov'},function(args, speaker)
+	if args[1] or 70 and isNumber(args[1] or 70) then
+    	workspace.CurrentCamera.FieldOfView = args[1]
+	end
+end)
+
+local FOVLoop
+addcmd('loopfieldofview',{'loopfov'},function(args, speaker)
+	if args[1] or 70 and isNumber(args[1] or 70) then
+		FOVLoop = workspace.CurrentCamera:GetPropertyChangedSignal("FieldOfView"):Connect(function()
+			workspace.CurrentCamera.FieldOfView = args[1]
+		end)
+    	workspace.CurrentCamera.FieldOfView = args[1]
+	end
+end)
+
+addcmd('unloopfieldofview',{'unloopfov'},function(args, speaker)
+	if FOVLoop then
+		FOVLoop:Disconnect()
+		FOVLoop = nil
+	end
+end)
+
+addcmd('toggleswim',{},function(args, speaker)
+	if swimming then
+		execCmd('unswim')
+	else
+		execCmd('swim')
+	end
+end)
+
 addcmd('setwaypoint',{'swp','setwp','spos','saveposition','savepos'},function(args, speaker)
 	local WPName = tostring(getstring(1, args))
 	if getRoot(speaker.Character) then
@@ -8820,13 +8896,6 @@ end)
 
 addcmd('tweengotocamera',{'tweengotocam','tgotocam','ttocam'},function(args, speaker)
 	TweenService:Create(getRoot(speaker.Character), TweenInfo.new(tweenSpeed, Enum.EasingStyle.Linear), {CFrame = workspace.Camera.CFrame}):Play()
-end)
-
-addcmd('fov',{},function(args, speaker)
-	local fov = args[1] or 70
-	if isNumber(fov) then
-		workspace.CurrentCamera.FieldOfView = fov
-	end
 end)
 
 local preMaxZoom = Players.LocalPlayer.CameraMaxZoomDistance
