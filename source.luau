@@ -4782,6 +4782,7 @@ CMDs[#CMDs + 1] = {NAME = 'rolewatchleave', DESC = 'Toggle if you should leave t
 CMDs[#CMDs + 1] = {NAME = 'staffwatch', DESC = 'Notify if a staff member of the game joins the server'}
 CMDs[#CMDs + 1] = {NAME = 'unstaffwatch', DESC = 'Disable Staffwatch'}
 CMDs[#CMDs + 1] = {NAME = 'dexplusplus / dexpp', DESC = 'Dex but better'}
+CMDs[#CMDs + 1] = {NAME = 'dropkick / dp', DESC = 'Fling people with style'}
 CMDs[#CMDs + 1] = {NAME = 'bundledecompiler [command]', DESC = 'Executes a command from infinite yield bundled with a decompiler'}
 CMDs[#CMDs + 1] = {NAME = 'findfriendgroups', DESC = 'Notifies you if any players are friends with each other'}
 CMDs[#CMDs + 1] = {NAME = 'handlekill / hkill [player] [radius] (TOOL)', DESC = 'Kills a player using tool damage (YOU NEED A TOOL)'}
@@ -8471,6 +8472,11 @@ addcmd('viewpart',{'viewp'},function(args, speaker)
 	end
 end)
 
+addcmd('dropkick',{'dp'},function(args, speaker)
+    notify("Loading",'Hold on a sec')
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/platinww/CrustyMain/refs/heads/main/universal/DropKick.lua"))()
+end)
+
 addcmd('unview',{'unspectate'},function(args, speaker)
 	StopFreecam()
 	if viewing ~= nil then
@@ -10903,7 +10909,7 @@ addcmd('loopgoto',{},function(args, speaker)
 		repeat
 			if Players:FindFirstChild(v) then
 				if Players[v].Character ~= nil then
-					getRoot(speaker.Character).CFrame = getRoot(Players[v].Character).CFrame + Vector3.new(distance,1,0)
+					getRoot(speaker.Character).CFrame = getRoot(Players[v].Character).CFrame --+ Vector3.new(distance,1,0)
 				end
 				wait(lDelay)
 			else
