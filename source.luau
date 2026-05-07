@@ -8123,53 +8123,57 @@ local function GetRoleColor(player)
     return color
 end
 
+local function Setup(player, character)
+    if not character then return end
+    
+    if Visuals[player] then
+        pcall(function() Visuals[player].Highlight:Destroy() end)
+        pcall(function() Visuals[player].Billboard:Destroy() end)
+    end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Parent = ESPFolder
+    highlight.Adornee = character
+    highlight.FillTransparency = 1
+    highlight.OutlineTransparency = 0
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Enabled = JustESPEnabled
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Parent = ESPFolder
+    billboard.Name = player.Name .. "_ESP"
+    billboard.Adornee = character:WaitForChild("Head", 5) or character.PrimaryPart
+    billboard.Size = UDim2.new(0, 100, 0, 30)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Enabled = JustESPEnabled
+
+    local label = Instance.new("TextLabel", billboard)
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.TextStrokeTransparency = 0.4
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Text = player.Name
+
+    Visuals[player] = {
+        Highlight = highlight,
+        Billboard = billboard,
+        Label = label,
+        Character = character
+    }
+end
+
 local function CreateVisual(player)
     if player == LocalPlayer then return end
     
-    local function Setup(character)
-        if not character then return end
-        
-        if Visuals[player] then
-            pcall(function() Visuals[player].Highlight:Destroy() end)
-            pcall(function() Visuals[player].Billboard:Destroy() end)
-        end
-
-        local highlight = Instance.new("Highlight")
-        highlight.Parent = ESPFolder
-        highlight.Adornee = character
-        highlight.FillTransparency = 1
-        highlight.OutlineTransparency = 0
-        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-        highlight.Enabled = JustESPEnabled
-
-        local billboard = Instance.new("BillboardGui")
-        billboard.Parent = ESPFolder
-        billboard.Name = player.Name .. "_ESP"
-        billboard.Adornee = character:WaitForChild("Head", 5) or character.PrimaryPart
-        billboard.Size = UDim2.new(0, 100, 0, 30)
-        billboard.StudsOffset = Vector3.new(0, 3, 0)
-        billboard.AlwaysOnTop = true
-        billboard.Enabled = JustESPEnabled
-
-        local label = Instance.new("TextLabel", billboard)
-        label.Size = UDim2.new(1, 0, 1, 0)
-        label.BackgroundTransparency = 1
-        label.TextStrokeTransparency = 0.4
-        label.TextScaled = true
-        label.Font = Enum.Font.GothamBold
-        label.Text = player.Name
-
-        Visuals[player] = {
-            Highlight = highlight,
-            Billboard = billboard,
-            Label = label,
-            Character = character
-        }
-    end
-
-    player.CharacterAdded:Connect(Setup)
+    player.CharacterAdded:Connect(function(char)
+        Setup(player, char)
+    end)
+    
     if player.Character then
-        task.spawn(Setup, player.Character)
+        task.spawn(Setup, player, player.Character)
     end
 end
 
@@ -8189,14 +8193,17 @@ local function UpdateVisuals()
         local character = player.Character
         local plrRoot = character and character:FindFirstChild("HumanoidRootPart")
         
-        if plrRoot and myRoot and character.Parent then
+        if plrRoot and myRoot and character and character.Parent then
             local distance = (myRoot.Position - plrRoot.Position).Magnitude
             local color = GetRoleColor(player)
             
             data.Label.Text = string.format("%s\n%.0f studs", player.Name, distance)
             data.Label.TextColor3 = color
             data.Highlight.OutlineColor = color
-            data.Highlight.Adornee = character
+            
+            if data.Highlight.Adornee ~= character then
+                data.Highlight.Adornee = character
+            end
             
             data.Highlight.Enabled = JustESPEnabled
             data.Billboard.Enabled = JustESPEnabled
