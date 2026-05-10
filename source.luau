@@ -6,6 +6,8 @@ end
 pcall(function() getgenv().IY_LOADED = true end)
 if not game:IsLoaded() then game.Loaded:Wait() end
 
+bypassDetections = false
+
 function missing(t, f, fallback)
 	if type(f) == t then return f end
 	return fallback
@@ -120,31 +122,33 @@ local iyassets = {
 	["infiniteyield/assets/settings.png"] = "rbxassetid://1204397029"
 }
 
--- getcustomasset detection bypass
-local hook = missing("function", hookmetamethod, function(obj, meta, fn)
-    local mt = getrawmetatable(obj)
-    if mt then
-        local setRO = missing("function", setreadonly or set_readonly, function(t, v) 
-            if makewritable then makewritable(t) end 
-        end)
+if bypassDetections then
+	-- getcustomasset detection bypass
+	local hook = missing("function", hookmetamethod, function(obj, meta, fn)
+    	local mt = getrawmetatable(obj)
+    	if mt then
+        	local setRO = missing("function", setreadonly or set_readonly, function(t, v) 
+            	if makewritable then makewritable(t) end 
+        	end)
         
-        setRO(mt, false)
-        local old = mt[meta]
-        mt[meta] = fn
-        return old
-    end
-end)
-
-if hook then
-	local getCustomAssetHook; getCustomAssetHook = hook(game, "__namecall", function(self, ...)
-    	local method = getnamecallmethod()
-	
-    	if self == ContentProvider and string.lower(method) == "preloadasync" then
- 	   		return
- 		end
-	
-	    return getCustomAssetHook(self, ...)
+        	setRO(mt, false)
+        	local old = mt[meta]
+        	mt[meta] = fn
+        	return old
+    	end
 	end)
+
+	if hook then
+		local getCustomAssetHook; getCustomAssetHook = hook(game, "__namecall", function(self, ...)
+    		local method = getnamecallmethod()
+	
+    		if self == ContentProvider and string.lower(method) == "preloadasync" then
+ 	   			return
+ 			end
+	
+	    	return getCustomAssetHook(self, ...)
+		end)
+	end
 end
 
 local function getcustomasset(asset)
