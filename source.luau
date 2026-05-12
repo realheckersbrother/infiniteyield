@@ -6,7 +6,7 @@ end
 pcall(function() getgenv().IY_LOADED = true end)
 if not game:IsLoaded() then game.Loaded:Wait() end
 
-bypassDetections = false
+bypassDetections = false -- do not touch this
 
 function missing(t, f, fallback)
 	if type(f) == t then return f end
@@ -39,7 +39,9 @@ makefolder = missing("function", makefolder)
 isfolder = missing("function", isfolder)
 waxgetcustomasset = missing("function", getcustomasset or getsynasset)
 hookfunction = missing("function", hookfunction)
-hookmetamethod = missing("function", hookmetamethod)
+getrawmetatable = missing("function", getrawmetatable or debug.getmetatable)
+setreadonly = missing("function", setreadonly or set_readonly, function(t, v) if makewritable then makewritable(t) end end)
+hookmetamethod = missing("function", hookmetamethod, function(obj, meta, fn) if getrawmetatable and setreadonly then local mt = getrawmetatable(obj) setreadonly(mt, false) local old = mt[meta] mt[meta] = fn return old end end)
 getnamecallmethod = missing("function", getnamecallmethod or get_namecall_method)
 checkcaller = missing("function", checkcaller, function() return false end)
 newcclosure = missing("function", newcclosure)
@@ -124,29 +126,15 @@ local iyassets = {
 
 -- this is a work in progress thats why its off also anti hook detection will be here soon
 if bypassDetections then
-	local hook = missing("function", hookmetamethod, function(obj, meta, fn)
-    	local mt = getrawmetatable(obj)
-    	if mt then
-        	local setRO = missing("function", setreadonly or set_readonly, function(t, v) 
-            	if makewritable then makewritable(t) end 
-        	end)
-        
-        	setRO(mt, false)
-        	local old = mt[meta]
-        	mt[meta] = fn
-        	return old
-    	end
-	end)
-
-	if hook then
-		local getCustomAssetHook; getCustomAssetHook = hook(game, "__namecall", function(self, ...)
+	if hookmetamethod then
+		local preload; preload = hookmetamethod(game, "__namecall", function(self, ...)
     		local method = getnamecallmethod()
 	
     		if self == ContentProvider and string.lower(method) == "preloadasync" then
  	   			return
  			end
 	
-	    	return getCustomAssetHook(self, ...)
+	    	return preload(self, ...)
 		end)
 	end
 end
