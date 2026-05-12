@@ -122,8 +122,8 @@ local iyassets = {
 	["infiniteyield/assets/settings.png"] = "rbxassetid://1204397029"
 }
 
+-- this is a work in progress thats why its off also anti hook detection will be here soon
 if bypassDetections then
-	-- getcustomasset detection bypass
 	local hook = missing("function", hookmetamethod, function(obj, meta, fn)
     	local mt = getrawmetatable(obj)
     	if mt then
