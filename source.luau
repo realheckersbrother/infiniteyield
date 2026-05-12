@@ -125,18 +125,16 @@ local iyassets = {
 }
 
 -- this is a work in progress thats why its off also anti hook detection will be here soon
-if bypassDetections then
-	if hookmetamethod then
-		local preload; preload = hookmetamethod(game, "__namecall", function(self, ...)
-    		local method = getnamecallmethod()
+if bypassDetections and hookmetamethod then
+	local preload; preload = hookmetamethod(game, "__namecall", function(self, ...)
+    	local method = getnamecallmethod()
 	
-    		if self == ContentProvider and string.lower(method) == "preloadasync" then
- 	   			return
- 			end
+    	if self == ContentProvider and string.lower(method) == "preloadasync" then
+ 	   		return
+ 		end
 	
-	    	return preload(self, ...)
-		end)
-	end
+	    return preload(self, ...)
+	end)
 end
 
 local function getcustomasset(asset)
