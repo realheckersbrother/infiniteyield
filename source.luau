@@ -4522,11 +4522,10 @@ CMDs[#CMDs + 1] = {NAME = 'guiscale [number]', DESC = 'Changes the size of the g
 CMDs[#CMDs + 1] = {NAME = 'console', DESC = 'Loads Roblox console'}
 CMDs[#CMDs + 1] = {NAME = 'oldconsole', DESC = 'Loads old Roblox console'}
 CMDs[#CMDs + 1] = {NAME = 'explorer / dex', DESC = 'Opens DEX by Moon'}
---CMDs[#CMDs + 1] = {NAME = 'olddex / odex', DESC = 'Opens Old DEX by Moon'}
---CMDs[#CMDs + 1] = {NAME = 'remotespy / rspy', DESC = 'Opens Simple Spy V3'}
+CMDs[#CMDs + 1] = {NAME = 'cobalt / cspy', DESC = 'Opens Cobalt to intercept incoming and outgoing network traffic'}
+CMDs[#CMDs + 1] = {NAME = 'remotespy / rspy', DESC = 'Opens Simple Spy V3 to intercept remote calls from the client to the server'}
 CMDs[#CMDs + 1] = {NAME = 'audiologger / alogger', DESC = 'Opens Edges audio logger'}
 CMDs[#CMDs + 1] = {NAME = 'serverinfo / info', DESC = 'Gives you info about the server'}
-CMDs[#CMDs + 1] = {NAME = 'serverscan', DESC = 'Scans strings for server references and reconstructs them'}
 CMDs[#CMDs + 1] = {NAME = 'jobid', DESC = 'Copies the games JobId to your clipboard'}
 CMDs[#CMDs + 1] = {NAME = 'notifyjobid', DESC = 'Notifies you the games JobId'}
 CMDs[#CMDs + 1] = {NAME = 'rejoin / rj', DESC = 'Makes you rejoin the game'}
@@ -6980,10 +6979,6 @@ addcmd('serverinfo',{'info','sinfo'},function(args, speaker)
 	end)
 end)
 
-addcmd("serverscan", {}, function(args, speaker)
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/serverscanner.lua"))()
-end)
-
 addcmd("jobid", {}, function(args, speaker)
 	toClipboard("roblox://placeId=" .. PlaceId .. "&gameInstanceId=" .. JobId)
 end)
@@ -7065,7 +7060,7 @@ addcmd('clip',{'unnoclip'},function(args, speaker)
 		Noclipping:Disconnect()
 	end
 	for _, child in pairs(speaker.Character:GetDescendants()) do
-		if child:IsA("BasePart") and child.CanCollide == true and child.Name ~= floatName then
+		if child:IsA("BasePart") and child.CanCollide == false and child.Name ~= floatName then
 			child.CanCollide = true
 		end
 	end
@@ -10958,13 +10953,15 @@ end)
 	Load(Dex)
 end)]]
 
-addcmd('cobalt',{'cobalt', 'rspy', 'remotespy'},function(args, speaker)
+addcmd('remotespy',{'rspy'},function(args, speaker)
 	notify("Loading",'Hold on a sec')
-	--[[
 	-- Full credit to exx, creator of SimpleSpy
 	-- also thanks to Amity for fixing
-	-loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/SimpleSpyV3/main.lua"))()
-	]]
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/SimpleSpyV3/main.lua"))()
+end)
+
+addcmd('cobalt',{'cobalt', 'rspy', 'remotespy'},function(args, speaker)
+	notify("Loading",'Hold on a sec')
 	-- Full credit to Notpoiu, creator of Cobalt
 	loadstring(game:HttpGet("https://github.com/notpoiu/cobalt/releases/latest/download/Cobalt.luau"))()
 end)
@@ -13655,7 +13652,7 @@ end)
 
 if not isLegacyChat then
 	TextChatService.MessageReceived:Connect(function(message)
-		if message.TextSource then
+		if message.TextSource and message.Status ~= Enum.TextChatMessageStatus.InvalidTextChannelPermissions then
 			local player = Players:GetPlayerByUserId(message.TextSource.UserId)
 			if not player then return end
 
