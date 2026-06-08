@@ -12516,12 +12516,33 @@ addcmd('spin',{},function(args, speaker)
 	Spin.AngularVelocity = Vector3.new(0,spinSpeed,0)
 end)
 
+addcmd('spin2',{},function(args, speaker)
+    local spinSpeed = 20
+	if args[1] and isNumber(args[1]) then
+		spinSpeed = args[1]
+	end
+	
+	getgenv().Spinning = true
+	local localRoot = getRoot(speaker.Character)
+	
+	task.spawn(function()
+		while getgenv().Spinning and localRoot and localRoot.Parent do
+			localRoot.CFrame = localRoot.CFrame * CFrame.Angles(0, math.rad(spinSpeed), 0)
+			task.wait()
+		end
+	end)
+end)
+
 addcmd('unspin',{},function(args, speaker)
 	for i,v in pairs(getRoot(speaker.Character):GetChildren()) do
 		if v.Name == "Spinning" then
 			v:Destroy()
 		end
 	end
+end)
+
+addcmd('unspin2',{},function(args, speaker)
+    getgenv().Spinning = false
 end)
 
 xrayEnabled = false
