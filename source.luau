@@ -9787,11 +9787,15 @@ addcmd('unmuteboombox',{},function(args, speaker)
 end)
 
 addcmd("reset", {}, function(args, speaker)
-	local humanoid = speaker.Character and speaker.Character:FindFirstChildWhichIsA("Humanoid")
-	if humanoid then
-		humanoid:ChangeState(Enum.HumanoidStateType.Dead)
-	else
-		speaker.Character:BreakJoints()
+	if replicatesignal then
+		replicatesignal(speaker.Kill) -- This causes a server-side death.
+    else
+		local humanoid = speaker.Character and speaker.Character:FindFirstChildWhichIsA("Humanoid")
+		if humanoid then
+			humanoid:ChangeState(Enum.HumanoidStateType.Dead)
+		else
+			speaker.Character:BreakJoints()
+		end
 	end
 end)
 
